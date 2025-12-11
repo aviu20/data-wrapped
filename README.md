@@ -2,47 +2,6 @@
 
 A Spotify Wrapped-style analyzer for your Hinge dating data! Upload your Hinge export and get a fun, shareable summary of your dating life.
 
-## 🚀 Quick Deploy
-
-### Option 1: GitHub Pages (Recommended)
-
-1. **Create a GitHub account** at [github.com](https://github.com) (if you don't have one)
-
-2. **Create a new repository**
-   - Click the "+" icon → "New repository"
-   - Name: `data-wrapped` (or any name you like)
-   - Make it **Public**
-   - Check "Add a README file"
-   - Click "Create repository"
-
-3. **Upload the file**
-   - Click "Add file" → "Upload files"
-   - Drag and drop the `index.html` file
-   - Click "Commit changes"
-
-4. **Enable GitHub Pages**
-   - Go to Settings → Pages (left sidebar)
-   - Under "Source", select "Deploy from a branch"
-   - Branch: `main`, Folder: `/ (root)`
-   - Click "Save"
-   - Wait 1-2 minutes, then refresh the page
-
-5. **Your site is live!** 🎉
-   - URL will be: `https://[your-username].github.io/data-wrapped/`
-   - Share this link with friends!
-
-### Option 2: Netlify Drop (Easiest)
-
-1. Go to [app.netlify.com/drop](https://app.netlify.com/drop)
-2. Drag the `index.html` file into the browser
-3. Done! You'll get an instant URL like `https://random-name-12345.netlify.app`
-
-### Option 3: Vercel
-
-1. Go to [vercel.com](https://vercel.com)
-2. Sign up with GitHub
-3. Import your repository
-4. Deploy!
 
 ## 📱 How to Use
 

@@ -83,58 +83,132 @@
 
                 let messagingAnalysis = null;
                 if (allChatMessages.length > 0) {
-                    const sampleMessages = allChatMessages.map(m => m.text).filter(Boolean).slice(0, 40);
-                    console.log('Analyzing', sampleMessages.length, 'messages');
+                    const sampleMessages = allChatMessages.map(m => m.text).filter(Boolean);
+                    console.log('Analyzing', sampleMessages.length, 'messages locally');
                     
-                    // Update loading message if we're in the upload flow
-                    if (typeof setLoadingMessage === 'function') {
-                        setLoadingMessage('AI is analyzing your texting style... 🤖');
+                    // Local analysis - no API needed!
+                    const allText = sampleMessages.join(' ').toLowerCase();
+                    const avgLength = sampleMessages.reduce((sum, msg) => sum + msg.length, 0) / sampleMessages.length;
+                    
+                    // Detect flirt style
+                    const emojiCount = (allText.match(/[😀😁😂🤣😃😄😅😆😉😊😋😎😍😘🥰😗😙😚☺️🤗🤩🥳😏😌😔😪🤤😴]/g) || []).length;
+                    const questionCount = (allText.match(/\?/g) || []).length;
+                    const exclamationCount = (allText.match(/!/g) || []).length;
+                    const hahaCount = (allText.match(/haha|lol|lmao|😂|🤣/g) || []).length;
+                    
+                    // Flirt score calculation
+                    let flirtScore = 5;
+                    if (emojiCount > sampleMessages.length * 0.3) flirtScore += 2;
+                    if (allText.includes('cute') || allText.includes('hot') || allText.includes('attractive')) flirtScore += 1;
+                    if (exclamationCount > sampleMessages.length * 0.5) flirtScore += 1;
+                    if (allText.includes('wink') || allText.includes('😉') || allText.includes('😏')) flirtScore += 1;
+                    flirtScore = Math.min(10, Math.max(1, flirtScore));
+                    
+                    // Determine flirt style
+                    let flirtStyle = 'subtle';
+                    if (emojiCount > sampleMessages.length * 0.5 && exclamationCount > sampleMessages.length * 0.3) flirtStyle = 'playful';
+                    else if (allText.includes('interested') || allText.includes('like you') || allText.includes('attracted')) flirtStyle = 'direct';
+                    else if (emojiCount < sampleMessages.length * 0.1 && avgLength > 100) flirtStyle = 'reserved';
+                    
+                    // Determine message style
+                    let messageStyle = 'casual';
+                    if (hahaCount > sampleMessages.length * 0.3) messageStyle = 'playful';
+                    else if (avgLength > 150) messageStyle = 'genuine';
+                    else if (questionCount > sampleMessages.length * 0.4) messageStyle = 'curious';
+                    else if (allText.match(/actually|honestly|basically|literally/g)?.length > 5) messageStyle = 'intellectual';
+                    
+                    // Personality traits based on patterns
+                    const traits = [];
+                    if (questionCount > sampleMessages.length * 0.3) traits.push('Curious');
+                    if (allText.includes('travel') || allText.includes('adventure') || allText.includes('explore')) traits.push('Adventurous');
+                    if (avgLength > 100) traits.push('Thoughtful');
+                    if (hahaCount > sampleMessages.length * 0.2) traits.push('Funny');
+                    if (allText.includes('work') || allText.includes('career') || allText.includes('goals')) traits.push('Ambitious');
+                    if (allText.includes('love') || allText.includes('feel') || allText.includes('heart')) traits.push('Romantic');
+                    if (emojiCount > sampleMessages.length * 0.4) traits.push('Expressive');
+                    if (allText.includes('book') || allText.includes('read') || allText.includes('learn')) traits.push('Intellectual');
+                    if (allText.includes('chill') || allText.includes('relax') || allText.includes('vibe')) traits.push('Laid-back');
+                    if (sampleMessages.some(m => m.length > 200)) traits.push('Detailed');
+                    
+                    // Fill in generic traits if not enough detected
+                    while (traits.length < 5) {
+                        const fillers = ['Friendly', 'Open-minded', 'Genuine', 'Easy-going', 'Engaging'];
+                        const filler = fillers[traits.length];
+                        if (!traits.includes(filler)) traits.push(filler);
                     }
                     
-                    try {
-                        const response = await fetch("https://api.anthropic.com/v1/messages", {
-                            method: "POST",
-                            headers: {"Content-Type": "application/json"},
-                            body: JSON.stringify({
-                                model: "claude-sonnet-4-20250514",
-                                max_tokens: 1500,
-                                messages: [{
-                                    role: "user",
-                                    content: `You are analyzing dating app messages. Based on these messages from a single person, create a personality profile.
-
-Messages: ${JSON.stringify(sampleMessages)}
-
-Respond with ONLY a JSON object in this exact format (no markdown, no extra text):
-{
-  "flirtScore": 7,
-  "flirtStyle": "playful",
-  "messageStyle": "witty",
-  "userPersonalityTraits": ["Curious", "Adventurous", "Thoughtful", "Funny", "Ambitious"],
-  "dateabilityScore": 8,
-  "dateabilityRoast": "Texts back fast but might ghost if the vibe isn't there",
-  "quirkyInsight": "Uses way too many emojis when excited",
-  "signatureLine": "So what's your story?",
-  "topUsedWords": ["haha", "actually", "love"]
-}`
-                                }]
-                            })
-                        });
-                        const result = await response.json();
-                        console.log('API Response:', result);
-                        
-                        if (result.content && result.content.length > 0) {
-                            const text = result.content.filter(i => i.type === 'text').map(i => i.text).join('');
-                            console.log('Raw text:', text);
-                            const cleaned = text.replace(/```json|```/g, '').trim();
-                            messagingAnalysis = JSON.parse(cleaned);
-                            console.log('Parsed analysis:', messagingAnalysis);
-                        } else if (result.error) {
-                            console.error('API Error:', result.error);
+                    // Dateability score
+                    let dateabilityScore = 5;
+                    if (avgLength > 50) dateabilityScore += 2; // Effort in messages
+                    if (questionCount > sampleMessages.length * 0.2) dateabilityScore += 1; // Shows interest
+                    if (hahaCount < sampleMessages.length * 0.05) dateabilityScore -= 1; // Too serious
+                    if (sampleMessages.length > 20) dateabilityScore += 1; // Actually messages people
+                    if (allText.includes('fuck') || allText.includes('shit')) dateabilityScore -= 1; // Casual language
+                    dateabilityScore = Math.min(10, Math.max(1, dateabilityScore));
+                    
+                    // Roasts based on score
+                    const roasts = {
+                        1: "You belong to the streets fr fr 💀",
+                        2: "Texts like you're allergic to commitment",
+                        3: "Give them a reason to reply back challenge",
+                        4: "You're trying but the vibes are off",
+                        5: "Perfectly mid - not bad, not great",
+                        6: "Actually putting in effort, respect",
+                        7: "Solid texter, would probably respond",
+                        8: "Keeper material tbh 💍",
+                        9: "Married for 7 lifetimes coded",
+                        10: "Soulmate energy, where have you been?"
+                    };
+                    
+                    // Quirky insights
+                    let quirkyInsight = "You text like a normal person";
+                    if (emojiCount > sampleMessages.length) quirkyInsight = "Uses emojis like they're going out of style 😅";
+                    else if (hahaCount > sampleMessages.length * 0.4) quirkyInsight = "Laughs at their own jokes a suspicious amount";
+                    else if (avgLength > 200) quirkyInsight = "Writes essays when a sentence would do";
+                    else if (avgLength < 30) quirkyInsight = "King/Queen of one-word replies";
+                    else if (questionCount > sampleMessages.length * 0.5) quirkyInsight = "Asks so many questions they might be a journalist";
+                    
+                    // Find most common words (excluding common words)
+                    const stopWords = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','as','is','was','are','been','be','have','has','had','do','does','did','will','would','should','could','may','might','can','i','you','we','they','he','she','it','my','your','our','their','this','that','these','those','what','which','who','when','where','why','how']);
+                    const words = allText.toLowerCase().match(/\b[a-z]{4,}\b/g) || [];
+                    const wordFreq = {};
+                    words.forEach(word => {
+                        if (!stopWords.has(word)) {
+                            wordFreq[word] = (wordFreq[word] || 0) + 1;
                         }
-                    } catch (e) { 
-                        console.error('Analysis error:', e);
-                        console.error('Error details:', e.message);
-                    }
+                    });
+                    const topUsedWords = Object.entries(wordFreq)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 3)
+                        .map(([word]) => word);
+                    
+                    // Signature line
+                    const signatureLines = [
+                        "So what's your story?",
+                        "Tell me more about that",
+                        "That's interesting!",
+                        "What do you think?",
+                        "I feel that"
+                    ];
+                    let signatureLine = signatureLines[0];
+                    if (questionCount > sampleMessages.length * 0.4) signatureLine = "So what's your story?";
+                    else if (hahaCount > sampleMessages.length * 0.3) signatureLine = "That's funny haha";
+                    else if (avgLength > 150) signatureLine = "Let me tell you about...";
+                    else if (emojiCount > sampleMessages.length * 0.5) signatureLine = "Omg yesss 😂";
+                    
+                    messagingAnalysis = {
+                        flirtScore,
+                        flirtStyle,
+                        messageStyle,
+                        userPersonalityTraits: traits.slice(0, 5),
+                        dateabilityScore,
+                        dateabilityRoast: roasts[dateabilityScore] || roasts[5],
+                        quirkyInsight,
+                        signatureLine,
+                        topUsedWords
+                    };
+                    
+                    console.log('Local analysis complete:', messagingAnalysis);
                 } else {
                     console.log('No chat messages found to analyze');
                 }

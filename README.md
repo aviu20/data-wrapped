@@ -58,10 +58,6 @@ Want to customize the look? Edit the `index.html` file:
 - Create a collage of your top stats
 - Compare results with friends
 
-### Custom domain (optional):
-- Buy a domain from Namecheap/GoDaddy ($12/year)
-- Point it to your GitHub Pages or Netlify site
-- Now it's `datawrapped.com` instead of `username.github.io`
 
 ## 🐛 Troubleshooting
 
@@ -73,10 +69,7 @@ Want to customize the look? Edit the `index.html` file:
 - Your Hinge export might not have timestamp data
 - This is normal for older exports
 
-**AI analysis not working**
-- Check your internet connection
-- The Claude API needs to be accessible
-- Try refreshing and uploading again
+
 
 ## 🙏 Credits
 
